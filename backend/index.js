@@ -26,6 +26,11 @@ app.get('/api/admins', db.getAdmins);
 app.post('/api/owner/create-admin', db.createAdmin);
 app.delete('/api/admins/:id', db.deleteAdmin);
 
+// ─── SETTINGS (Owner) ─────────────────────────────────────────
+app.get('/api/owner/backup-db', db.backupDb);
+app.post('/api/owner/reset-db', db.resetDb);
+app.get('/api/owner/recent-users', db.getRecentUsers);
+
 // ─── STUDENTS (Admin) ─────────────────────────────────────────
 app.get('/api/admin/students', db.getStudents);
 app.post('/api/admin/students', db.addStudent);

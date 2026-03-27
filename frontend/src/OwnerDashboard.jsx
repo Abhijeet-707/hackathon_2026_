@@ -7,10 +7,12 @@ const API = 'http://localhost:3000/api';
 export default function OwnerDashboard() {
   const [stats, setStats] = useState({});
   const [colleges, setColleges] = useState([]);
+  const [recentUsers, setRecentUsers] = useState([]);
 
   useEffect(() => {
     axios.get(`${API}/dashboard`).then(r => setStats(r.data)).catch(console.error);
     axios.get(`${API}/colleges`).then(r => setColleges(r.data)).catch(console.error);
+    axios.get(`${API}/owner/recent-users`).then(r => setRecentUsers(r.data)).catch(console.error);
   }, []);
 
   const placementRate = stats.total_students > 0
@@ -68,6 +70,46 @@ export default function OwnerDashboard() {
                 </tr>
               );
             })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Global Recent Registrations Log */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: '2rem' }}>
+        <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Global Recent Registrations</h3>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Real-time database reflection of the last 30 added admins and students.</p>
+          </div>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4f46e5', background: '#ede9fe', padding: '0.3rem 0.6rem', borderRadius: '6px' }}>Live Connection</span>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr style={{ background: '#f9fafb' }}>
+            {['Name', 'Role', 'Assigned College', 'Email Address', 'Creation Time'].map(h => (
+              <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
+            ))}
+          </tr></thead>
+          <tbody>
+            {recentUsers.map(u => (
+              <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                onMouseLeave={e => e.currentTarget.style.background = ''}>
+                <td style={{ padding: '0.75rem 1rem', fontWeight: 500, color: '#111827' }}>{u.name}</td>
+                <td style={{ padding: '0.75rem 1rem' }}>
+                  <span style={{ 
+                    background: u.role === 'admin' ? '#fef3c7' : '#e0e7ff', 
+                    color: u.role === 'admin' ? '#92400e' : '#3730a3', 
+                    padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, textTransform: 'capitalize' 
+                  }}>{u.role}</span>
+                </td>
+                <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{u.college_name || '—'}</td>
+                <td style={{ padding: '0.75rem 1rem', color: '#4b5563', fontSize: '0.85rem', fontFamily: 'monospace' }}>{u.email}</td>
+                <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                  {new Date(u.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                </td>
+              </tr>
+            ))}
+            {recentUsers.length === 0 && <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No live records found yet.</td></tr>}
           </tbody>
         </table>
       </div>

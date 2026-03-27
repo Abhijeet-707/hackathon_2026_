@@ -18,16 +18,11 @@ export default function StudentProfile() {
   const fields = [
     { label: 'Full Name', value: profile.name },
     { label: 'Email', value: profile.email },
-    { label: 'Enrollment No.', value: profile.enrollment },
     { label: 'College', value: profile.college_name },
-    { label: 'Course', value: profile.course },
     { label: 'Branch', value: profile.branch },
-    { label: 'Division', value: profile.division },
   ];
 
   const marks = [
-    { label: '10th Percentage', value: parseFloat(profile.tenth_percent || 0).toFixed(2) + '%', color: '#3b82f6' },
-    { label: '12th Percentage', value: parseFloat(profile.twelfth_percent || 0).toFixed(2) + '%', color: '#8b5cf6' },
     { label: 'CGPA', value: parseFloat(profile.cgpa || 0).toFixed(2), color: parseFloat(profile.cgpa) >= 7.5 ? '#22c55e' : parseFloat(profile.cgpa) >= 6 ? '#f59e0b' : '#ef4444' },
   ];
 

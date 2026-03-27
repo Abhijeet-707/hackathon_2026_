@@ -9,11 +9,11 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-    console.log('✅ Connected to PostgreSQL - placement_tracker');
+    console.log('Connected to PostgreSQL - placement_tracker');
 });
 
 pool.on('error', (err) => {
-    console.error('❌ PostgreSQL pool error:', err.message);
+    console.error('PostgreSQL pool error:', err.message);
 });
 
 module.exports = pool;

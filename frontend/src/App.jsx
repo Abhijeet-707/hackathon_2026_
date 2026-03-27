@@ -4,8 +4,7 @@ import Home from './Home';
 import Layout from './Layout';
 import OwnerDashboard from './OwnerDashboard';
 import OwnerColleges from './OwnerColleges';
-import OwnerAdmins from './OwnerAdmins';
-import OwnerAnalytics from './OwnerAnalytics';
+import OwnerSettings from './OwnerSettings';
 import AdminDashboard from './AdminDashboard';
 import AdminStudents from './AdminStudents';
 import AdminCompanies from './AdminCompanies';
@@ -40,8 +39,7 @@ function App() {
           {/* Owner routes */}
           <Route path="/owner" element={<ProtectedRoute allowedRoles={['owner']}><OwnerDashboard /></ProtectedRoute>} />
           <Route path="/owner/colleges" element={<ProtectedRoute allowedRoles={['owner']}><OwnerColleges /></ProtectedRoute>} />
-          <Route path="/owner/admins" element={<ProtectedRoute allowedRoles={['owner']}><OwnerAdmins /></ProtectedRoute>} />
-          <Route path="/owner/analytics" element={<ProtectedRoute allowedRoles={['owner']}><OwnerAnalytics /></ProtectedRoute>} />
+          <Route path="/owner/settings" element={<ProtectedRoute allowedRoles={['owner']}><OwnerSettings /></ProtectedRoute>} />
           {/* Admin routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/students" element={<ProtectedRoute allowedRoles={['admin']}><AdminStudents /></ProtectedRoute>} />

@@ -1,0 +1,91 @@
+{
+  "colleges": [
+    { "name": "Pune University" },
+    { "name": "MIT College, Aurangabad" }
+  ],
+  "users": [
+    {
+      "name": "Super Owner",
+      "email": "owner@tracker.com",
+      "password": "123",
+      "role": "owner",
+      "college_id": null
+    },
+    {
+      "name": "College Admin",
+      "email": "admin@tracker.com",
+      "password": "123",
+      "role": "admin",
+      "college_id": 1
+    },
+    {
+      "name": "Rahul Sharma",
+      "email": "student@tracker.com",
+      "password": "123",
+      "role": "student",
+      "college_id": 1
+    }
+  ],
+  "students": [
+    {
+      "user_id": 3,
+      "enrollment": "EN2021001",
+      "course": "BTech",
+      "branch": "CE",
+      "division": "A",
+      "tenth_percent": 88.5,
+      "twelfth_percent": 82.0,
+      "cgpa": 8.5
+    }
+  ],
+  "companies": [
+    {
+      "college_id": 1,
+      "name": "TechCorp",
+      "role": "SDE Intern",
+      "package": "6 LPA",
+      "jd": "Full-stack development internship. 6 months. Work on live projects.",
+      "min_10": 75,
+      "min_12": 70,
+      "min_cgpa": 7.5,
+      "allowed_branches": ["CE", "IT"],
+      "allowed_courses": ["BTech", "MCA"]
+    },
+    {
+      "college_id": 1,
+      "name": "Infosys",
+      "role": "Systems Engineer",
+      "package": "3.6 LPA",
+      "jd": "Systems engineering role. Training + placement program.",
+      "min_10": 60,
+      "min_12": 60,
+      "min_cgpa": 6.0,
+      "allowed_branches": ["CE", "IT", "ECE"],
+      "allowed_courses": ["BTech", "BCA"]
+    },
+    {
+      "college_id": 1,
+      "name": "Wipro",
+      "role": "Project Engineer",
+      "package": "3.5 LPA",
+      "jd": "Project engineering and client delivery role.",
+      "min_10": 65,
+      "min_12": 65,
+      "min_cgpa": 6.5,
+      "allowed_branches": ["CE", "IT"],
+      "allowed_courses": ["BTech"]
+    },
+    {
+      "college_id": 1,
+      "name": "HCL",
+      "role": "Software Developer",
+      "package": "4 LPA",
+      "jd": "Product development for enterprise clients.",
+      "min_10": 55,
+      "min_12": 55,
+      "min_cgpa": 5.5,
+      "allowed_branches": ["CE", "IT", "ME"],
+      "allowed_courses": ["BTech", "BCA", "MCA"]
+    }
+  ]
+}

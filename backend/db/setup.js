@@ -2,6 +2,7 @@
 // Usage: node db/setup.js
 
 const { Client } = require('pg');
+const seedData = require('./seed_data.json');
 
 const credentials = {
   user: 'postgres',
@@ -17,7 +18,7 @@ async function setup() {
   const dbExists = await admin.query(`SELECT 1 FROM pg_database WHERE datname='placement_tracker'`);
   if (dbExists.rowCount === 0) {
     await admin.query('CREATE DATABASE placement_tracker');
-    console.log('✅ Database created.');
+    console.log('Database created.');
   } else {
     console.log('ℹ️  Database already exists.');
   }
@@ -35,7 +36,7 @@ async function setup() {
     DROP TABLE IF EXISTS users CASCADE;
     DROP TABLE IF EXISTS colleges CASCADE;
   `);
-  console.log('🧹 Dropped old tables.');
+  console.log('Dropped old tables.');
 
   // Colleges
   await db.query(`
@@ -108,38 +109,42 @@ async function setup() {
   console.log('✅ All tables created.');
 
   // Seed Colleges
-  await db.query(`INSERT INTO colleges (name) VALUES ('Pune University'),('MIT College, Aurangabad');`);
+  for (const c of seedData.colleges) {
+    await db.query(`INSERT INTO colleges (name) VALUES ($1);`, [c.name]);
+  }
 
   // Seed Users
-  await db.query(`
-    INSERT INTO users (name, email, password, role, college_id) VALUES
-      ('Super Owner', 'owner@tracker.com', '123', 'owner', NULL),
-      ('College Admin', 'admin@tracker.com', '123', 'admin', 1),
-      ('Rahul Sharma', 'student@tracker.com', '123', 'student', 1);
-  `);
+  for (const u of seedData.users) {
+    await db.query(
+      `INSERT INTO users (name, email, password, role, college_id) VALUES ($1, $2, $3, $4, $5);`,
+      [u.name, u.email, u.password, u.role, u.college_id]
+    );
+  }
 
   // Seed Student Profile
-  await db.query(`
-    INSERT INTO students (user_id, enrollment, course, branch, division, tenth_percent, twelfth_percent, cgpa)
-    VALUES (3, 'EN2021001', 'BTech', 'CE', 'A', 88.5, 82.0, 8.5);
-  `);
+  for (const s of seedData.students) {
+    await db.query(
+      `INSERT INTO students (user_id, enrollment, course, branch, division, tenth_percent, twelfth_percent, cgpa)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
+      [s.user_id, s.enrollment, s.course, s.branch, s.division, s.tenth_percent, s.twelfth_percent, s.cgpa]
+    );
+  }
 
   // Seed Companies
-  await db.query(`
-    INSERT INTO companies (college_id, name, role, package, jd, min_10, min_12, min_cgpa, allowed_branches, allowed_courses)
-    VALUES
-      (1, 'TechCorp', 'SDE Intern', '6 LPA', 'Full-stack development internship. 6 months. Work on live projects.', 75, 70, 7.5, ARRAY['CE','IT'], ARRAY['BTech','MCA']),
-      (1, 'Infosys', 'Systems Engineer', '3.6 LPA', 'Systems engineering role. Training + placement program.', 60, 60, 6.0, ARRAY['CE','IT','ECE'], ARRAY['BTech','BCA']),
-      (1, 'Wipro', 'Project Engineer', '3.5 LPA', 'Project engineering and client delivery role.', 65, 65, 6.5, ARRAY['CE','IT'], ARRAY['BTech']),
-      (1, 'HCL', 'Software Developer', '4 LPA', 'Product development for enterprise clients.', 55, 55, 5.5, ARRAY['CE','IT','ME'], ARRAY['BTech','BCA','MCA']);
-  `);
+  for (const c of seedData.companies) {
+    await db.query(
+      `INSERT INTO companies (college_id, name, role, package, jd, min_10, min_12, min_cgpa, allowed_branches, allowed_courses)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`,
+      [c.college_id, c.name, c.role, c.package, c.jd, c.min_10, c.min_12, c.min_cgpa, c.allowed_branches, c.allowed_courses]
+    );
+  }
 
-  console.log('✅ Seed data inserted.');
+  console.log('✅ Seed data inserted from seed_data.json.');
   await db.end();
-  console.log('\n🎉 Setup complete! Run: node index.js');
+  console.log('\n Setup complete! Run: node index.js');
 }
 
 setup().catch(err => {
-  console.error('❌ Setup failed:', err.message);
+  console.error('Setup failed:', err.message);
   process.exit(1);
 });

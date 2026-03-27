@@ -1,16 +1,20 @@
-# React + Vite
+# PlacementPro - Frontend View 🖥️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This folder contains the **React.js** frontend for the Placement Management System.
 
-Currently, two official plugins are available:
+## 🚀 How to start the frontend:
+1. Make sure you have installed the packages by running:
+ `npm install`
+2. Start the development server by running:
+ `npm run dev`
+3. Open your browser to the URL printed in the terminal (usually `http://localhost:5173`).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 📂 What is inside here?
+*   `src/App.jsx` - This handles all the secure routing. It checks who is logged in and sends them to the correct dashboard.
+*   `src/Home.jsx` - The beautiful login page where everyone signs in.
+*   `src/Owner*.jsx` - All the pages meant ONLY for the Super Admin Owner (Colleges, Admins, Analytics).
+*   `src/Admin*.jsx` - All the pages meant ONLY for the College Admin (Students, Companies, Applications, Reports).
+*   `src/Student*.jsx` - All the pages meant ONLY for the Student (Companies they are eligible for, their applications, and their profile).
+*   `src/Sidebar.jsx` - The side navigation menu that changes automatically based on your role.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+*Note: For the full project explanation, please read the main `README.md` in the root folder.*

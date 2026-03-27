@@ -2,14 +2,13 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Users, Briefcase, FileText,
-  LogOut, GraduationCap, ChevronRight, BarChart3, UserCog, ClipboardList
+  LogOut, GraduationCap, ChevronRight, BarChart3, UserCog, ClipboardList, Settings
 } from 'lucide-react';
 
 const ownerNav = [
   { to: '/owner', label: 'Dashboard', icon: <LayoutDashboard size={18} />, end: true },
   { to: '/owner/colleges', label: 'Colleges', icon: <Building2 size={18} /> },
-  { to: '/owner/admins', label: 'Admin Management', icon: <UserCog size={18} /> },
-  { to: '/owner/analytics', label: 'Analytics', icon: <BarChart3 size={18} /> },
+  { to: '/owner/settings', label: 'Platform Settings', icon: <Settings size={18} /> },
 ];
 const adminNav = [
   { to: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={18} />, end: true },

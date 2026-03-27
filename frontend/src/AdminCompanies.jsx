@@ -5,8 +5,7 @@ import { Plus, Trash2, Briefcase } from 'lucide-react';
 const API = 'http://localhost:3000/api';
 const getAdmin = () => JSON.parse(localStorage.getItem('user') || '{}');
 const BRANCHES = ['CE', 'IT', 'ECE', 'ME', 'Civil', 'EE', 'CS'];
-const COURSES = ['BTech', 'BCA', 'MCA', 'BBA', 'BSc'];
-const empty = { name: '', role: '', package: '', jd: '', min_10: '', min_12: '', min_cgpa: '', allowed_branches: [], allowed_courses: [] };
+const empty = { name: '', role: '', package: '', jd: '', min_cgpa: '', allowed_branches: [] };
 
 export default function AdminCompanies() {
   const [companies, setCompanies] = useState([]);
@@ -47,21 +46,17 @@ export default function AdminCompanies() {
           <form onSubmit={handleAdd}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
               <div className="input-group"><label className="input-label">Company Name *</label>
-                <input required className="input-field" placeholder="e.g. TechCorp" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+                <input required className="input-field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div className="input-group"><label className="input-label">Job Role *</label>
-                <input required className="input-field" placeholder="e.g. SDE Intern" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} /></div>
+                <input required className="input-field" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} /></div>
               <div className="input-group"><label className="input-label">Package (CTC)</label>
-                <input className="input-field" placeholder="e.g. 6 LPA" value={form.package} onChange={e => setForm({ ...form, package: e.target.value })} /></div>
-              <div className="input-group"><label className="input-label">Min 10th %</label>
-                <input type="number" step="0.01" className="input-field" placeholder="e.g. 60" value={form.min_10} onChange={e => setForm({ ...form, min_10: e.target.value })} /></div>
-              <div className="input-group"><label className="input-label">Min 12th %</label>
-                <input type="number" step="0.01" className="input-field" placeholder="e.g. 60" value={form.min_12} onChange={e => setForm({ ...form, min_12: e.target.value })} /></div>
+                <input className="input-field" value={form.package} onChange={e => setForm({ ...form, package: e.target.value })} /></div>
               <div className="input-group"><label className="input-label">Min CGPA</label>
-                <input type="number" step="0.01" className="input-field" placeholder="e.g. 7.0" value={form.min_cgpa} onChange={e => setForm({ ...form, min_cgpa: e.target.value })} /></div>
+                <input type="number" step="0.01" className="input-field" value={form.min_cgpa} onChange={e => setForm({ ...form, min_cgpa: e.target.value })} /></div>
             </div>
             <div className="input-group">
               <label className="input-label">Job Description</label>
-              <textarea rows={2} className="input-field" placeholder="Role details, work profile..." value={form.jd} onChange={e => setForm({ ...form, jd: e.target.value })} />
+              <textarea rows={2} className="input-field" value={form.jd} onChange={e => setForm({ ...form, jd: e.target.value })} />
             </div>
             {/* Branch Selector */}
             <div className="input-group">
@@ -73,19 +68,6 @@ export default function AdminCompanies() {
                     background: form.allowed_branches.includes(b) ? '#4f46e5' : '#e5e7eb',
                     color: form.allowed_branches.includes(b) ? 'white' : '#374151'
                   }}>{b}</button>
-                ))}
-              </div>
-            </div>
-            {/* Course Selector */}
-            <div className="input-group">
-              <label className="input-label">Allowed Courses (click to select)</label>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
-                {COURSES.map(c => (
-                  <button key={c} type="button" onClick={() => toggleArr('allowed_courses', c)} style={{
-                    padding: '0.3rem 0.75rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500,
-                    background: form.allowed_courses.includes(c) ? '#4f46e5' : '#e5e7eb',
-                    color: form.allowed_courses.includes(c) ? 'white' : '#374151'
-                  }}>{c}</button>
                 ))}
               </div>
             </div>
@@ -110,9 +92,7 @@ export default function AdminCompanies() {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
               <span style={{ background: '#f0fdf4', color: '#166534', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>💰 {c.package || 'N/A'}</span>
-              <span style={{ background: '#f0f9ff', color: '#075985', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem' }}>10th: {c.min_10}%</span>
-              <span style={{ background: '#f0f9ff', color: '#075985', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem' }}>12th: {c.min_12}%</span>
-              <span style={{ background: '#fefce8', color: '#713f12', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem' }}>CGPA: {c.min_cgpa}</span>
+              <span style={{ background: '#fefce8', color: '#713f12', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem' }}>Min CGPA: {c.min_cgpa}</span>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>{c.jd || 'No JD provided.'}</p>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

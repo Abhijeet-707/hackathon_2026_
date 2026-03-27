@@ -9,6 +9,8 @@ export default function StudentCompanies() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [applied, setApplied] = useState({});
+  const [confirmCompany, setConfirmCompany] = useState(null);
+  const [successCompany, setSuccessCompany] = useState(null);
   const user = getUser();
   const studentId = user.student_record_id;
 
@@ -20,13 +22,21 @@ export default function StudentCompanies() {
   };
   useEffect(() => { fetch(); }, []);
 
-  const apply = async (companyId) => {
+  const executeApply = async () => {
+    if (!confirmCompany) return;
     try {
-      await axios.post(`${API}/student/apply`, { student_id: studentId, company_id: companyId });
-      setApplied(prev => ({ ...prev, [companyId]: true }));
+      await axios.post(`${API}/student/apply`, { student_id: studentId, company_id: confirmCompany.id });
+      setApplied(prev => ({ ...prev, [confirmCompany.id]: true }));
+      setSuccessCompany(confirmCompany);
+      setConfirmCompany(null);
       fetch();
     } catch (err) {
-      if (err.response?.status === 409) setApplied(prev => ({ ...prev, [companyId]: true }));
+      if (err.response?.status === 409) {
+        setApplied(prev => ({ ...prev, [confirmCompany.id]: true }));
+        setConfirmCompany(null);
+      } else {
+        alert('Failed to apply. Please try again.');
+      }
     }
   };
 
@@ -76,13 +86,11 @@ export default function StudentCompanies() {
               </div>
               <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{c.jd || 'No job description provided.'}</p>
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                <span style={{ background: '#f0f9ff', color: '#075985', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem' }}>10th ≥ {c.min_10}%</span>
-                <span style={{ background: '#f0f9ff', color: '#075985', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem' }}>12th ≥ {c.min_12}%</span>
                 <span style={{ background: '#fefce8', color: '#713f12', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem' }}>CGPA ≥ {c.min_cgpa}</span>
                 {(c.allowed_branches || []).map(b => <span key={b} style={{ background: '#ede9fe', color: '#4f46e5', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem' }}>{b}</span>)}
               </div>
               <button
-                onClick={() => !isApplied && apply(c.id)}
+                onClick={() => !isApplied && setConfirmCompany(c)}
                 disabled={isApplied}
                 style={{
                   padding: '0.65rem 1rem', borderRadius: '10px', border: 'none', cursor: isApplied ? 'default' : 'pointer',
@@ -96,6 +104,59 @@ export default function StudentCompanies() {
           );
         })}
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmCompany && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '20px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            <div style={{ background: '#ede9fe', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <Briefcase size={28} color="#4f46e5" />
+            </div>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#111827' }}>Confirm Application</h2>
+            <p style={{ color: '#4b5563', fontSize: '0.95rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              Are you sure you want to officially submit your profile to <strong>{confirmCompany.name}</strong> for the <strong>{confirmCompany.role}</strong> position?
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button 
+                onClick={executeApply}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: '#4f46e5', color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#4338ca'}
+                onMouseLeave={e => e.currentTarget.style.background = '#4f46e5'}>
+                Yes, Apply Now
+              </button>
+              <button 
+                onClick={() => setConfirmCompany(null)}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: '#f3f4f6', color: '#4b5563', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseLeave={e => e.currentTarget.style.background = '#f3f4f6'}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {successCompany && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: 'white', padding: '2.5rem 2rem', borderRadius: '20px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            <div style={{ background: '#dcfce7', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <CheckCircle size={36} color="#22c55e" />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#166534' }}>Application Sent!</h2>
+            <p style={{ color: '#4b5563', fontSize: '0.95rem', lineHeight: 1.5, marginBottom: '2rem' }}>
+              Thank you for applying to <strong>{successCompany.name}</strong>. Your academic profile has been securely forwarded to their recruitment queue. Further information and interview schedules will be shared shortly via your dashboard.
+            </p>
+            <button 
+              onClick={() => setSuccessCompany(null)}
+              style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', background: '#22c55e', color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '1rem', transition: 'background 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#16a34a'}
+              onMouseLeave={e => e.currentTarget.style.background = '#22c55e'}>
+              Awesome, Got it!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,7 @@
 const pool = require('../db/connectionobj');
+const { sendRegistrationEmail, sendAdminRegistrationEmail } = require('../utils/mailer');
+const { exec } = require('child_process');
+const path = require('path');
 
 // ═══════════════════════════════════════════
 // AUTH
@@ -20,9 +23,7 @@ const login = (req, res) => {
   );
 };
 
-// ═══════════════════════════════════════════
 // COLLEGES
-// ═══════════════════════════════════════════
 const getColleges = (req, res) => {
   pool.query(
     `SELECT c.id, c.name,
@@ -50,16 +51,22 @@ const createCollege = (req, res) => {
   });
 };
 
-const deleteCollege = (req, res) => {
-  pool.query('DELETE FROM colleges WHERE id=$1', [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'College deleted' });
-  });
+const deleteCollege = async (req, res) => {
+  try {
+    await pool.query('BEGIN');
+    // Delete users associated with the college (Cascades to students and applications)
+    await pool.query('DELETE FROM users WHERE college_id=$1', [req.params.id]);
+    // Delete the college itself (Cascades to companies via schema config)
+    await pool.query('DELETE FROM colleges WHERE id=$1', [req.params.id]);
+    await pool.query('COMMIT');
+    res.json({ message: 'College and all associated data completely authorized and wiped.' });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// ═══════════════════════════════════════════
 // ADMIN MANAGEMENT (Owner creates admins)
-// ═══════════════════════════════════════════
 const createAdmin = (req, res) => {
   const { name, email, password, college_id } = req.body;
   pool.query(
@@ -67,6 +74,10 @@ const createAdmin = (req, res) => {
     [name, email, password, college_id],
     (err, r) => {
       if (err) return res.status(500).json({ error: err.message });
+      
+      // Dispatch admin welcome email containing credentials
+      sendAdminRegistrationEmail(email, name, password).catch(console.error);
+
       res.status(201).json(r.rows[0]);
     }
   );
@@ -91,9 +102,7 @@ const deleteAdmin = (req, res) => {
   });
 };
 
-// ═══════════════════════════════════════════
 // STUDENTS
-// ═══════════════════════════════════════════
 const getStudents = (req, res) => {
   const { college_id, branch, course } = req.query;
   let q = `SELECT u.id, u.name, u.email, u.college_id,
@@ -124,6 +133,10 @@ const addStudent = async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
       [userId, enrollment, course, branch, division, parseFloat(tenth_percent)||0, parseFloat(twelfth_percent)||0, parseFloat(cgpa)||0]
     );
+    
+    // Add non-blocking email call here
+    sendRegistrationEmail(email, name, password).catch(console.error);
+    
     res.status(201).json({ user_id: userId, ...studentRes.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -137,9 +150,7 @@ const deleteStudent = (req, res) => {
   });
 };
 
-// ═══════════════════════════════════════════
 // COMPANIES
-// ═══════════════════════════════════════════
 const getCompanies = (req, res) => {
   const { college_id } = req.query;
   let q = 'SELECT * FROM companies';
@@ -175,9 +186,7 @@ const deleteCompany = (req, res) => {
   });
 };
 
-// ═══════════════════════════════════════════
 // ELIGIBLE COMPANIES FOR STUDENT
-// ═══════════════════════════════════════════
 const getEligibleCompanies = (req, res) => {
   const { student_id } = req.query;
   pool.query(
@@ -187,11 +196,8 @@ const getEligibleCompanies = (req, res) => {
      JOIN students s ON s.id = $1
      LEFT JOIN applications a ON a.company_id = c.id AND a.student_id = $1
      WHERE c.college_id = (SELECT college_id FROM users WHERE id = s.user_id)
-       AND s.tenth_percent >= c.min_10
-       AND s.twelfth_percent >= c.min_12
        AND s.cgpa >= c.min_cgpa
-       AND (c.allowed_branches = '{}' OR s.branch = ANY(c.allowed_branches))
-       AND (c.allowed_courses = '{}' OR s.course = ANY(c.allowed_courses))
+       AND (cardinality(c.allowed_branches) = 0 OR c.allowed_branches IS NULL OR s.branch = ANY(c.allowed_branches))
      ORDER BY c.created_at DESC`,
     [student_id],
     (err, r) => {
@@ -201,9 +207,8 @@ const getEligibleCompanies = (req, res) => {
   );
 };
 
-// ═══════════════════════════════════════════
+
 // APPLICATIONS
-// ═══════════════════════════════════════════
 const applyToCompany = (req, res) => {
   const { student_id, company_id } = req.body;
   pool.query(
@@ -255,9 +260,7 @@ const updateApplicationStatus = (req, res) => {
   );
 };
 
-// ═══════════════════════════════════════════
 // STUDENT PROFILE
-// ═══════════════════════════════════════════
 const getStudentProfile = (req, res) => {
   const { user_id } = req.query;
   pool.query(
@@ -275,9 +278,7 @@ const getStudentProfile = (req, res) => {
   );
 };
 
-// ═══════════════════════════════════════════
 // DASHBOARD STATS
-// ═══════════════════════════════════════════
 const getDashboardStats = (req, res) => {
   const { college_id, student_id } = req.query;
   let filter = '';
@@ -312,6 +313,50 @@ const getDashboardStats = (req, res) => {
   );
 };
 
+// ═══════════════════════════════════════════
+// PLATFORM SETTINGS (Owner)
+// ═══════════════════════════════════════════
+const backupDb = async (req, res) => {
+  try {
+    const backup = { timestamp: new Date().toISOString() };
+    backup.colleges = (await pool.query('SELECT * FROM colleges')).rows;
+    backup.users = (await pool.query('SELECT * FROM users')).rows;
+    backup.students = (await pool.query('SELECT * FROM students')).rows;
+    backup.companies = (await pool.query('SELECT * FROM companies')).rows;
+    backup.applications = (await pool.query('SELECT * FROM applications')).rows;
+    
+    res.json(backup);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const resetDb = (req, res) => {
+  const setupScriptPath = path.join(__dirname, '../db/setup.js');
+  // Execute the seed script to obliterate and refresh the DB
+  exec(`node "${setupScriptPath}"`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(stderr);
+      return res.status(500).json({ error: 'Failed to factory reset database.' });
+    }
+    res.json({ message: 'Database successfull wiped and reset to Factory Seed.' });
+  });
+};
+
+const getRecentUsers = (req, res) => {
+  pool.query(`
+    SELECT u.id, u.name, u.email, u.role, c.name as college_name, u.created_at
+    FROM users u
+    LEFT JOIN colleges c ON c.id = u.college_id
+    WHERE u.role != 'owner'
+    ORDER BY u.created_at DESC
+    LIMIT 30
+  `, (err, r) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(r.rows);
+  });
+};
+
 module.exports = {
   login,
   getColleges, createCollege, deleteCollege,
@@ -322,4 +367,5 @@ module.exports = {
   applyToCompany, getApplications, updateApplicationStatus,
   getStudentProfile,
   getDashboardStats,
+  backupDb, resetDb, getRecentUsers
 };
